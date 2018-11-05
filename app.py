@@ -1,3 +1,4 @@
+import math
 import xmltodict
 from flask import Flask, request, send_from_directory
 from flask_restful import Api, Resource, reqparse, abort
@@ -12,14 +13,19 @@ cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 def docs():
     return send_from_directory('docs', 'docs.html')
 
+def _float(v):
+    if v == "NaN":
+        return ""
+    else:
+        return float(v)
 
 def CH1903toWGS1984(east, north):
     """ 
     function to convert SwisGrid coordinates to WSG84 aka Google Coordinates :-) 
     http://www.giangrandi.ch/soft/swissgrid/swissgrid.shtml 
     """
-    east = float(east)
-    north = float(north)
+    east = _float(east)
+    north = _float(north)
     east -= 600000                         # Convert origin to "civil" system, where Bern has coordinates 0,0.
     north -= 200000
     east /= 1E6                            # Express distances in 1000km units.
@@ -53,15 +59,15 @@ def parse_values(parameter):
     data = {
             "unit": parameter["@unit"],
             "datetime": parameter["datetime"],
-            "value": float(value),
-            "previous-24h": float(parameter["previous-24h"]),
-            "delta-24h": float(parameter["delta-24h"]),
-            "max-24h": float(max24h),
-            "mean-24h": float(parameter["mean-24h"]),
-            "min-24h": float(parameter["min-24h"]),
-            "max-1h": float(parameter["max-1h"]),
-            "mean-1h": float(parameter["mean-1h"]),
-            "min-1h": float(parameter["min-1h"])
+            "value": _float(value),
+            "previous-24h": _float(parameter["previous-24h"]),
+            "delta-24h": _float(parameter["delta-24h"]),
+            "max-24h": _float(max24h),
+            "mean-24h": _float(parameter["mean-24h"]),
+            "min-24h": _float(parameter["min-24h"]),
+            "max-1h": _float(parameter["max-1h"]),
+            "mean-1h": _float(parameter["mean-1h"]),
+            "min-1h": _float(parameter["min-1h"])
         }
     return data
 
