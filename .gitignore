@@ -1,6 +1,2 @@
-.envrc
-venv
-swisshydroapi.sock
 __pycache__
-hydroweb.xml
-fetch.py
+playbook.retry

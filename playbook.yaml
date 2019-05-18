@@ -82,25 +82,26 @@
         owner: www-data
         group: www-data
         state: link
-   
-    - name: Replace username with prompted value
-      raw: sed 's/"username"/"{{bafuuser}}"/' /tmp/bafu.service
 
-    - name: Replace password with prompted value
-      raw: sed 's/"password"/"{{bafupass}}"/' /tmp/bafu.service
+    - name: Replace username with prompted value
+      become: yes
+      lineinfile: 
+        path: /tmp/swisshydroapi/bafu.service
+        regexp: 'ExecStart'
+        line: 'ExecStart=curl -o /src/swisshydroapi/hydroweb.xml --anyauth --user "{{ bafuuser }}":"{{ bafupass }}" https://www.hydrodata.ch/data/plc/xml/hydroweb.xml'
 
     - name: Copy BAFU download timer to /etc/systemd/system
       become: yes
       copy:
         src: /tmp/swisshydroapi/bafu.timer
-        dest: /etc/systemd/systmd/bafu.timer
+        dest: /etc/systemd/system/bafu.timer
         remote_src: yes
     
     - name: Copy BAFU download service file to /etc/systemd/system
       become: yes
       copy:
         src: /tmp/swisshydroapi/bafu.service
-        dest: /etc/systemd/systmd/bafu.service
+        dest: /etc/systemd/system/bafu.service
         remote_src: yes
 
   vars_prompt:
