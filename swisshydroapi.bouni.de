@@ -1,0 +1,12 @@
+server {
+    listen              80;
+    server_name         swisshydroapi.bouni.de;
+
+    access_log      /var/log/nginx/access.swisshydroapi.log;
+    error_log       /var/log/nginx/error.swisshydroapi.log;
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/tmp/swisshydroapi.sock;
+    }
+}
