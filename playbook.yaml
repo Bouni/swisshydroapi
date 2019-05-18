@@ -82,10 +82,34 @@
         owner: www-data
         group: www-data
         state: link
+   
+    - name: Replace username with prompted value
+      raw: sed 's/"username"/"{{bafuuser}}"/' /tmp/bafu.service
+
+    - name: Replace password with prompted value
+      raw: sed 's/"password"/"{{bafupass}}"/' /tmp/bafu.service
+
+    - name: Copy BAFU download timer to /etc/systemd/system
+      become: yes
+      copy:
+        src: /tmp/swisshydroapi/bafu.timer
+        dest: /etc/systemd/systmd/bafu.timer
+        remote_src: yes
+    
+    - name: Copy BAFU download service file to /etc/systemd/system
+      become: yes
+      copy:
+        src: /tmp/swisshydroapi/bafu.service
+        dest: /etc/systemd/systmd/bafu.service
+        remote_src: yes
 
   vars_prompt:
+    
     - name: "bafuuser"
       prompt: "Enter BAFU username"
+    
+    - name: "bafupass"
+      prompt: "Enter BAFU password"
     # systemctrl daemon reload + start
     #
 
