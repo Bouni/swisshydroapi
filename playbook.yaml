@@ -30,11 +30,21 @@
         group: www-data
         mode: '0755'
 
-    - name: Copy app.py to /srv
+    - name: Copy app.py to /srv/swisshydroapi/
       become: yes
       copy:
         src: /tmp/swisshydroapi/app.py 
         dest: /srv/swisshydroapi/app.py
+        remote_src: yes
+        owner: www-data
+        group: www-data
+        mode: '0755'
+    
+    - name: Copy docs to /srv/swisshydroapi/
+      become: yes
+      copy:
+        src: /tmp/swisshydroapi/docs 
+        dest: /srv/swisshydroapi/docs
         remote_src: yes
         owner: www-data
         group: www-data

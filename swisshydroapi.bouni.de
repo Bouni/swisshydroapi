@@ -5,8 +5,16 @@ server {
     access_log      /var/log/nginx/access.swisshydroapi.log;
     error_log       /var/log/nginx/error.swisshydroapi.log;
 
+
     location / {
+        root /srv/swisshydroapi/docs;
+        index docs.html;
+    }
+     
+
+    location /api/ {
         include proxy_params;
         proxy_pass http://unix:/tmp/swisshydroapi.sock;
     }
+    
 }
