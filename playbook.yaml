@@ -1,0 +1,243 @@
+---
+- hosts: all
+  tasks:
+
+    - name: Upgrade packages
+      become: yes
+      apt:
+        upgrade: dist
+
+    - name: Install nginx web server
+      become: yes
+      apt: name=nginx state=latest update_cache=true
+
+    # figure out ow to set Exoscale security group settings
+    # Instance must be reachable on port 80
+
+    - name: clone git repo
+      become: yes
+      git:
+        repo: 'https://github.com/Bouni/swisshydroapi.git'
+        dest: /tmp/swisshydroapi
+        force: yes
+
+    - name: Ensures /srv/swisshydroapi dir exists
+      become: yes
+      file: 
+        path: /srv/swisshydroapi 
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Copy app.py to /srv
+      become: yes
+      copy:
+        src: /tmp/swisshydroapi/app.py 
+        dest: /srv/swisshydroapi/app.py
+        remote_src: yes
+        owner: www-data
+        group: www-data
+        mode: '0755'
+    
+    - name: Copy service file to /etc/systemd/system
+      become: yes
+      copy:
+        src: /tmp/swisshydroapi/swisshydroapi.service
+        dest: /etc/systemd/system/swisshydroapi.service
+        remote_src: yes
+    
+    - name: Install pip
+      become: yes
+      apt: name=python3-pip state=latest update_cache=true
+
+    - name: Install virtualenv
+      become: yes
+      pip:
+        executable: pip3 
+        name: virtualenv
+        state: present
+
+    - name: Install python requirements
+      become: yes
+      pip:
+        virtualenv_python: python3
+        requirements: /tmp/swisshydroapi/requirements.txt 
+        virtualenv: /srv/swisshydroapi/venv
+    
+    - name: Copy nginx config file to /etc/nginx/sites-available
+      become: yes
+      copy:
+        src: /tmp/swisshydroapi/swisshydroapi.bouni.de
+        dest: /etc/nginx/sites-available/swisshydroapi.bouni.de
+        remote_src: yes
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Create a symbolic link
+      file:
+        src: /etc/nginx/sites-available/swisshydroapi.bouni.de
+        dest: /etc/nginx/sites-enabled/swisshydroapi.bouni.de
+        owner: www-data
+        group: www-data
+        state: link
+
+  vars_prompt:
+    - name: "bafuuser"
+      prompt: "Enter BAFU username"
+    # systemctrl daemon reload + start
+    #
+
+      #    - name: Disable the camera via raspi-config
+      #      become: yes
+      #      command: raspi-config nonint do_camera 1
+      #      changed_when: False
+      # 
+      #    - name: Disable VNC via raspi-config
+      #      become: yes
+      #      command: raspi-config nonint do_vnc  1
+      #      changed_when: False
+      #
+      #    - name: Disable SPI via raspi-config
+      #      become: yes
+      #      command: raspi-config nonint do_spi 1
+      #      changed_when: False
+      #
+      #    - name: Disable I2C via raspi-config
+      #      become: yes
+      #      command: raspi-config nonint do_i2c 1
+      #      changed_when: False
+      #
+      #    - name: Disable serial via raspi-config
+      #      become: yes
+      #      command: raspi-config nonint do_serial 1
+      #      changed_when: False
+      #
+      #    - name: Disable one wire via raspi-config
+      #      become: yes
+      #      command: raspi-config nonint do_onewire 1
+      #      changed_when: False
+      #
+      #    - name: Update package list
+      #      become: yes
+      #      apt:
+      #        update_cache: yes
+      #      
+      #    - name: Upgrade packages
+      #      become: yes
+      #      apt:
+      #        upgrade: dist
+      #
+      #    - name: Install require packages
+      #      become: yes
+      #      apt:
+      #        name:
+      #            - xtightvncviewer 
+      #            - cec-utils 
+      #            - xinit 
+      #            - xserver-xorg-legacy 
+      #            - x11-xserver-utils 
+      #            - xfonts-scalable 
+      #            - xfonts-100dpi 
+      #            - xfonts-75dpi 
+      #            - xfonts-base 
+      #            - matchbox-window-manager
+      #            - libcec-dev 
+      #            - make
+      #        state: present
+      #
+      #    - name: Allow all users to start X11
+      #      become: yes
+      #      lineinfile:
+      #        path: /etc/X11/Xwrapper.config
+      #        regexp: '^allowed_users='
+      #        line: 'allowed_users=anybody'
+      #
+      #    - name: Place xinitrc
+      #      copy:
+      #        src: files/.xinitrc
+      #        dest: "{{ ansible_env.HOME }}/.xinitrc"
+      #
+      #    - name: Set password and target IP of VNC Server
+      #      become: yes
+      #      lineinfile:
+      #        path: "{{ ansible_env.HOME }}/.xinitrc"
+      #        regexp: '^exec echo'
+      #        line: 'exec echo "{{ vnc_password }}" | xtightvncviewer -viewonly -fullscreen -autopass {{ vnc_server }}:0'
+      #
+      #    - name: Place xinit-login.service
+      #      become: yes
+      #      copy:
+      #        src: files/xinit-login.service
+      #        dest: "/etc/systemd/system/xinit-login.service"
+      #      notify:
+      #        - restart X11
+      #
+      #    - name: Enable and start xinit-login systemd service
+      #      become: yes
+      #      systemd:
+      #        name: xinit-login
+      #        state: started
+      #        enabled: yes
+      #        masked: no
+      #        daemon_reload: yes
+      #
+      #    - name: Place /boot/config.txt
+      #      become: yes
+      #      copy:
+      #        src: files/config.txt
+      #        dest: "/boot/config.txt"
+      #
+      #    - name: Configure config.txt
+      #      become: yes
+      #      replace:
+      #        path: "{{ item.path }}"
+      #        regexp: "{{ item.regex }}"
+      #        replace: "{{ item.replace }}"
+      #      with_items:
+      #        - { path: "/boot/config.txt", regex: "^disable_overscan.*", replace: "disable_overscan={{ config_disable_overscan }}" }
+      #        - { path: "/boot/config.txt", regex: "^overscan_left.*", replace: "overscan_left={{ config_overscan_left }}" }
+      #        - { path: "/boot/config.txt", regex: "^overscan_right.*", replace: "overscan_right={{ config_overscan_right }}" }
+      #        - { path: "/boot/config.txt", regex: "^overscan_top.*", replace: "overscan_top={{ config_overscan_top }}" }
+      #        - { path: "/boot/config.txt", regex: "^overscan_bottom.*", replace: "overscan_bottom={{ config_overscan_bottom }}" }
+      #        - { path: "/boot/config.txt", regex: "^framebuffer_width.*", replace: "framebuffer_width={{ config_framebuffer_width }}" }
+      #        - { path: "/boot/config.txt", regex: "^framebuffer_height.*", replace: "framebuffer_height={{ config_framebuffer_height }}" }
+      #        - { path: "/boot/config.txt", regex: "^hdmi_force_hotplug.*", replace: "hdmi_force_hotplug={{ config_hdmi_force_hotplug }}" }
+      #        - { path: "/boot/config.txt", regex: "^hdmi_mode.*", replace: "hdmi_mode={{ config_hdmi_mode }}" }
+      #        - { path: "/boot/config.txt", regex: "^hdmi_drive.*", replace: "hdmi_drive={{ config_hdmi_drive }}" }
+      #
+      #    - name: Place hdmi-cec-rest binary in /usr/bin/
+      #      become: yes
+      #      copy:
+      #        src: files/hdmi-cec-rest
+      #        dest: "/usr/bin/hdmi-cec-rest"
+      #        mode: 0755
+      #
+      #    - name: Place hdmi-cec-rest.service
+      #      become: yes
+      #      copy:
+      #        src: files/hdmi-cec-rest.service
+      #        dest: "/etc/systemd/system/hdmi-cec-rest.service"
+      #
+      #    - name: Enable and start hdmi-cec-rest systemd service
+      #      become: yes
+      #      systemd:
+      #        name: hdmi-cec-rest
+      #        state: started
+      #        enabled: yes
+      #        masked: no
+      #        daemon_reload: yes
+      #    
+      #    - name: Reboot the Pi
+      #      become: yes
+      #      reboot:
+      #      
+      #
+      #  handlers:
+      #    - name: restart X11
+      #      become: yes
+      #      systemd:
+      #        name: xinit-login
+      #        state: restarted
+      #        daemon_reload: yes

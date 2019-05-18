@@ -1,0 +1,8 @@
+[Unit]
+Description=Timer to download hydroweb.xml every 10 Minutes
+
+[Timer]
+OnCalendar=*:0,10,20,30,40,50
+
+[Install]
+WantedBy=basic.target

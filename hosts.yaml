@@ -1,0 +1,7 @@
+all:
+  hosts:
+    swisshydroapi-exoscale:
+        ansible_ssh_host: 159.100.248.29
+  vars:
+    ansible_user: ubuntu
+    ansible_become_method: sudo
