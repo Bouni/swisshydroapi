@@ -2,7 +2,7 @@ import math
 import xmltodict
 from flask import Flask, request, send_from_directory
 from flask_restful import Api, Resource, reqparse, abort
-from flask_cache import Cache 
+from flask_caching import Cache 
 
 app = Flask(__name__, static_url_path='')
 api = Api(app)
