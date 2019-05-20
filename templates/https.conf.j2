@@ -39,10 +39,8 @@ server {
         proxy_pass http://unix:/tmp/swisshydroapi.sock;
     }
 
-    #root /var/www/{{ swisshydroapi_domain }};
-    #index index.html index.htm;
+    location = /favicon.ico {
+      log_not_found off;
+    }
 
-    #location / {
-    #    try_files $uri $uri/ =404;
-    #}
 }
