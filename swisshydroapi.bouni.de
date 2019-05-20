@@ -1,3 +1,5 @@
+server_tokens off;
+
 server {
     listen              80;
     server_name         swisshydroapi.bouni.de;
@@ -6,11 +8,15 @@ server {
     error_log       /var/log/nginx/error.swisshydroapi.log;
 
 
+    location /.well-known/acme-challenge {
+        root /var/www/letsencrypt;
+        try_files $uri $uri/ =404;
+    }
+
     location / {
         root /srv/swisshydroapi/docs;
         index docs.html;
     }
-     
 
     location /api/ {
         include proxy_params;

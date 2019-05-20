@@ -3,5 +3,7 @@ all:
     swisshydroapi-exoscale:
         ansible_ssh_host: 159.100.248.29
   vars:
+    swisshydroapi_domain: swisshydroapi.bouni.de
+    swisshydroapi_email: bouni@owee.de
     ansible_user: ubuntu
     ansible_become_method: sudo

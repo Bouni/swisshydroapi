@@ -1,28 +1,104 @@
 ---
 - hosts: all
+  become: yes
   tasks:
 
     - name: Upgrade packages
-      become: yes
       apt:
         upgrade: dist
 
+    # Install packages
+
     - name: Install nginx web server
-      become: yes
       apt: name=nginx state=latest update_cache=true
 
-    # figure out ow to set Exoscale security group settings
-    # Instance must be reachable on port 80
+    - name: install letsencrypt
+      apt: name=letsencrypt state=latest
+    
+    - name: Install pip
+      apt: name=python3-pip state=latest update_cache=true
+
+    # Clone repo
 
     - name: clone git repo
-      become: yes
       git:
         repo: 'https://github.com/Bouni/swisshydroapi.git'
         dest: /tmp/swisshydroapi
         force: yes
 
+    # Setup webserver
+
+    - name: create letsencrypt directory
+      file: name=/var/www/letsencrypt state=directory
+
+    - name: find enabled nginx configs
+      find:
+        paths: /etc/nginx/sites-enabled
+        patterns: '*'
+      register: enabled_sites
+
+    - name: Remove nginx configs
+      file:
+        path: "{{ item['path'] }}"
+        state: absent
+      with_items: "{{ enabled_sites['files'] }}"
+
+    - name: Install system nginx config
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+
+    - name: Install http config
+      template:
+        src: templates/http.conf.j2
+        dest: /etc/nginx/sites-available/swisshydroapi.http.conf
+
+    - name: Create a symbolic link for http conf
+      file:
+        src: /etc/nginx/sites-available/swisshydroapi.http.conf
+        dest: /etc/nginx/sites-enabled/swisshydroapi.http.conf
+        owner: www-data
+        group: www-data
+        state: link
+    
+    - name: Reload nginx to activate letsencrypt site
+      service: name=nginx state=restarted
+
+    - name: Create letsencrypt certificate
+      shell: letsencrypt certonly -n --webroot -w /var/www/letsencrypt -m {{ swisshydroapi_email }} --agree-tos -d {{ swisshydroapi_domain }}
+      args:
+        creates: /etc/letsencrypt/live/{{ swisshydroapi_domain }}
+
+    - name: Generate dhparams
+      shell: openssl dhparam -out /etc/nginx/dhparams.pem 2048
+      args:
+        creates: /etc/nginx/dhparams.pem
+    
+    - name: Install https config
+      template:
+        src: templates/https.conf.j2
+        dest: /etc/nginx/sites-available/swisshydroapi.https.conf
+    
+    - name: Create a symbolic link for https conf
+      file:
+        src: /etc/nginx/sites-available/swisshydroapi.https.conf
+        dest: /etc/nginx/sites-enabled/swisshydroapi.https.conf
+        owner: www-data
+        group: www-data
+        state: link
+
+    - name: Reload nginx to activate letsencrypt site
+      service: name=nginx state=restarted
+
+    - name: Add letsencrypt cronjob for cert renewal
+      cron:
+        name: letsencrypt_renewal
+        special_time: weekly
+        job: letsencrypt --renew certonly -n --webroot -w /var/www/letsencrypt -m {{ swisshydroapi_email }} --agree-tos -d {{ swisshydroapi_domain }} && service nginx reload
+
+    # install swisshydroapi app
+
     - name: Ensures /srv/swisshydroapi dir exists
-      become: yes
       file: 
         path: /srv/swisshydroapi 
         state: directory
@@ -31,7 +107,6 @@
         mode: '0755'
 
     - name: Copy app.py to /srv/swisshydroapi/
-      become: yes
       copy:
         src: /tmp/swisshydroapi/app.py 
         dest: /srv/swisshydroapi/app.py
@@ -41,7 +116,6 @@
         mode: '0755'
     
     - name: Ensures /srv/swisshydroapi/docs dir exists
-      become: yes
       file: 
         path: /srv/swisshydroapi/docs 
         state: directory
@@ -50,7 +124,6 @@
         mode: '0755'
     
     - name: Copy docs to /srv/swisshydroapi/
-      become: yes
       copy:
         src: /tmp/swisshydroapi/docs/docs.html 
         dest: /srv/swisshydroapi/docs/docs.html
@@ -60,71 +133,42 @@
         mode: '0755'
     
     - name: Copy service file to /etc/systemd/system
-      become: yes
       copy:
         src: /tmp/swisshydroapi/swisshydroapi.service
         dest: /etc/systemd/system/swisshydroapi.service
         remote_src: yes
-    
-    - name: Install pip
-      become: yes
-      apt: name=python3-pip state=latest update_cache=true
 
     - name: Install virtualenv
-      become: yes
       pip:
         executable: pip3 
         name: virtualenv
         state: present
 
     - name: Install python requirements
-      become: yes
       pip:
         virtualenv_python: python3
         requirements: /tmp/swisshydroapi/requirements.txt 
         virtualenv: /srv/swisshydroapi/venv
-    
-    - name: Copy nginx config file to /etc/nginx/sites-available
-      become: yes
-      copy:
-        src: /tmp/swisshydroapi/swisshydroapi.bouni.de
-        dest: /etc/nginx/sites-available/swisshydroapi.bouni.de
-        remote_src: yes
-        owner: www-data
-        group: www-data
-        mode: '0755'
-
-    - name: Create a symbolic link
-      file:
-        src: /etc/nginx/sites-available/swisshydroapi.bouni.de
-        dest: /etc/nginx/sites-enabled/swisshydroapi.bouni.de
-        owner: www-data
-        group: www-data
-        state: link
 
     - name: Replace username with prompted value
-      become: yes
       lineinfile: 
-        path: /tmp/swisshydroapi/bafu.service
+        path: /tmp/swisshydroapi/bafu/bafu.service
         regexp: 'ExecStart'
         line: 'ExecStart=curl -o /src/swisshydroapi/hydroweb.xml --anyauth --user "{{ bafuuser }}":"{{ bafupass }}" https://www.hydrodata.ch/data/plc/xml/hydroweb.xml'
 
     - name: Copy BAFU download timer to /etc/systemd/system
-      become: yes
       copy:
-        src: /tmp/swisshydroapi/bafu.timer
+        src: /tmp/swisshydroapi/bafu/bafu.timer
         dest: /etc/systemd/system/bafu.timer
         remote_src: yes
     
     - name: Copy BAFU download service file to /etc/systemd/system
-      become: yes
       copy:
         src: /tmp/swisshydroapi/bafu.service
         dest: /etc/systemd/system/bafu.service
         remote_src: yes
 
     - name: Enable and start swisshydroapi.service
-      become: yes
       systemd:
         name: swisshydroapi.service
         state: started
@@ -133,7 +177,6 @@
         daemon_reload: yes
     
     - name: Enable and start bafu.timer
-      become: yes
       systemd:
         name: bafu.timer
         state: started
