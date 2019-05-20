@@ -164,7 +164,7 @@
     
     - name: Copy BAFU download service file to /etc/systemd/system
       copy:
-        src: /tmp/swisshydroapi/bafu.service
+        src: /tmp/swisshydroapi/bafu/bafu.service
         dest: /etc/systemd/system/bafu.service
         remote_src: yes
 
