@@ -138,7 +138,7 @@
     
     - name: Copy service file to /etc/systemd/system
       copy:
-        src: /tmp/swisshydroapi/swisshydroapi.service
+        src: /tmp/swisshydroapi/systemd/swisshydroapi.service
         dest: /etc/systemd/system/swisshydroapi.service
         remote_src: yes
 
@@ -156,25 +156,25 @@
 
     - name: Replace username with prompted value
       lineinfile: 
-        path: /tmp/swisshydroapi/bafu/bafu.sh
+        path: /tmp/swisshydroapi/bafu.sh
         regexp: '/usr/bin/curl'
         line: '/usr/bin/curl -o /srv/swisshydroapi/hydroweb.xml --anyauth --user "{{ bafuuser }}":"{{ bafupass }}" https://www.hydrodata.ch/data/plc/xml/hydroweb.xml'
 
     - name: Copy BAFU download timer to /etc/systemd/system
       copy:
-        src: /tmp/swisshydroapi/bafu/bafu.timer
+        src: /tmp/swisshydroapi/systemd/bafu.timer
         dest: /etc/systemd/system/bafu.timer
         remote_src: yes
     
     - name: Copy BAFU download service file to /etc/systemd/system
       copy:
-        src: /tmp/swisshydroapi/bafu/bafu.service
+        src: /tmp/swisshydroapi/systemd/bafu.service
         dest: /etc/systemd/system/bafu.service
         remote_src: yes
     
     - name: Copy BAFU download script file to /srv/swisshydroapi
       copy:
-        src: /tmp/swisshydroapi/bafu/bafu.sh
+        src: /tmp/swisshydroapi/bafu.sh
         dest: /srv/swisshydroapi/bafu.sh
         remote_src: yes
 
