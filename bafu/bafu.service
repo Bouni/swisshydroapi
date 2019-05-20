@@ -2,5 +2,7 @@
 Description=Unit to download hydroweb.xml from BAFU
 
 [Service]
+User=www-data
+Group=www-data
 Type=oneshot
 ExecStart=curl -o /src/swisshydroapi/hydroweb.xml --anyauth --user "username":"password" https://www.hydrodata.ch/data/plc/xml/hydroweb.xml

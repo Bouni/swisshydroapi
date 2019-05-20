@@ -3,6 +3,10 @@
   become: yes
   tasks:
 
+    - name: Set timezone to Europe/Zurich
+      timezone:
+        name: Europe/Zurich
+
     - name: Upgrade packages
       apt:
         upgrade: dist
@@ -154,7 +158,7 @@
       lineinfile: 
         path: /tmp/swisshydroapi/bafu/bafu.service
         regexp: 'ExecStart'
-        line: 'ExecStart=curl -o /src/swisshydroapi/hydroweb.xml --anyauth --user "{{ bafuuser }}":"{{ bafupass }}" https://www.hydrodata.ch/data/plc/xml/hydroweb.xml'
+        line: 'ExecStart=curl -o /srv/swisshydroapi/hydroweb.xml --anyauth --user "{{ bafuuser }}":"{{ bafupass }}" https://www.hydrodata.ch/data/plc/xml/hydroweb.xml'
 
     - name: Copy BAFU download timer to /etc/systemd/system
       copy:
