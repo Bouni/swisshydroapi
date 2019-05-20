@@ -6,7 +6,7 @@ from flask_caching import Cache
 
 app = Flask(__name__, static_url_path='')
 api = Api(app)
-cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+cache = Cache(app, config={'CACHE_TYPE': 'filesystem', 'CACHE_DIR': '/tmp'})
 
 
 @app.route("/")
@@ -107,7 +107,7 @@ def refresh_data():
                 data[station["@number"]]["parameters"][name] = parse_values(parameter)
         return data
 
-@cache.cached(timeout=60*10,key_prefix='data')
+@cache.cached(timeout=60,key_prefix='data')
 def get_data():
     return refresh_data()
 
