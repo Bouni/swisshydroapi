@@ -1,2 +1,6 @@
+.direnv
+.envrc
+config
 __pycache__
 playbook.retry
+*.json

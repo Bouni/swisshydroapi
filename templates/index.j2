@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="SwissHydroApi">
+        <title>SwissHydroApi</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@5.8.55/css/materialdesignicons.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">    
+
+    </head>
+    <body>
+        <section class="section">
+            <div class="container">
+                <h1 class="title has-text-centered">
+                    SwissHydroApi
+                </h1>
+                <div class="content subtitle box mt-6">
+                    <ul>
+                        <li>The data is provided by <a href="https://www.hydrodaten.admin.ch/">FOEN</a> but they are not responsible for this API by any means.</li>
+                        <li>The API data is refreshed every 10 Minutes, which is the maximum allowed polling rate by FOEN.</li>
+                        <li>Contact me at bouni@owee.de if you need help or have suggestions to improve this API.</li>
+                        <li>This API modifys the data slightly in some minor points:</li>
+                        <ul>
+                            <li>It converts <a href="https://en.wikipedia.org/wiki/Swiss_coordinate_system">Swiss Geo Coordinates</a> to <a href="https://en.wikipedia.org/wiki/World_Geodetic_System">WSG84</a> because thats most likely more useful for the people unsing it.</li>
+                            <li>It translates some text to english because the data set coming from FOEN isn't fully translated.</li>
+                        </ul>
+                    </ul>       
+                    <div class="content mt-3 has-text-centered">
+                        <a href="/docs" class="button is-info">
+                            <span class="icon mr-2">
+                                <i class="mdi mdi-book-open-page-variant"></i>
+                            </span> Documentation
+                        </a>
+                        <a href="https://github.com/Bouni/swisshydroapi" class="button is-dark">
+                            <span class="icon mr-2">
+                                <i class="mdi mdi-github"></i>
+                            </span> Github repo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </body>
+</html>
+
