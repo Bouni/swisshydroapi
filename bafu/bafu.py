@@ -1,6 +1,8 @@
 import json
-import math
+import sys
 import os
+import signal
+import time
 
 import requests
 import xmltodict
@@ -9,14 +11,24 @@ import xmltodict
 class XML2JSON:
     def __init__(self):
         self.data = {}
-        self.load_config()
         self.fetch()
         self.parse()
         self.write()
+        self.killed = False
 
-    def load_config(self):
-        with open("config") as c:
-            self.config = json.load(c)
+    def _handler(self, signum, frame):
+        print("Received SIGINT or SIGTERM! Finishing this block, then exiting.")
+        self.killed = True
+
+    def __enter__(self):
+        self.old_sigint = signal.signal(signal.SIGINT, self._handler)
+        self.old_sigterm = signal.signal(signal.SIGTERM, self._handler)
+
+    def __exit__(self, type, value, traceback):
+        if self.killed:
+            sys.exit(0)
+        signal.signal(signal.SIGINT, self.old_sigint)
+        signal.signal(signal.SIGTERM, self.old_sigterm)
 
     def CH1903toWGS1984(self, east, north):
         """ 
@@ -55,32 +67,22 @@ class XML2JSON:
         try:
             v = float(v)
         except:
-            v = ""
+            v = v
         return v
 
     def parse_values(self, parameter):
         """ Parse parameter values from xml """
-        if isinstance(parameter["value"], str):
-            value = parameter["value"]
-        else:
-            value = parameter["value"]["#text"]
-        if isinstance(parameter["max-24h"], str):
-            max24h = parameter["max-24h"]
-        else:
-            max24h = parameter["max-24h"]["#text"]
         values = {
             "unit": parameter["@unit"],
             "datetime": parameter["datetime"],
-            "value": self.to_float(value),
-            "previous-24h": self.to_float(parameter["previous-24h"]),
-            "delta-24h": self.to_float(parameter["delta-24h"]),
-            "max-24h": self.to_float(max24h),
-            "mean-24h": self.to_float(parameter["mean-24h"]),
-            "min-24h": self.to_float(parameter["min-24h"]),
-            "max-1h": self.to_float(parameter["max-1h"]),
-            "mean-1h": self.to_float(parameter["mean-1h"]),
-            "min-1h": self.to_float(parameter["min-1h"]),
         }
+        for p in parameter:
+            if p.startswith("@"):
+                continue
+            if isinstance(parameter[p], str):
+                values[p] = self.to_float(parameter[p])
+            else:
+                values[p] = self.to_float(parameter[p]["#text"])
         return values
 
     def parse(self):
@@ -117,12 +119,17 @@ class XML2JSON:
 
     def fetch(self):
         r = requests.get(
-            self.config["url"], auth=(self.config["user"], self.config["pass"])
+            os.environ.get("bafu_url", None),
+            auth=(os.environ.get("bafu_user", None), os.environ.get("bafu_pass", None)),
         )
+        if r.ok:
+            print(f"Sucessfully fetched {os.environ.get('bafu_url')}")
+        else:
+            print(f"Error {r.status_code}, {r.text}")
         self.xml = r.content
 
     def write(self):
-        with open("station_list.json", "w") as j:
+        with open("/data/station_list.json", "w") as j:
             stations = [
                 {
                     "id": k,
@@ -135,11 +142,18 @@ class XML2JSON:
             json.dump(
                 stations, j,
             )
-        with open("station_data.json", "w") as j:
+        with open("/data/station_data.json", "w") as j:
             json.dump(
                 self.data, j,
             )
 
 
 if __name__ == "__main__":
-    XML2JSON()
+    try:
+        while True:
+            # get data from bafu, convert it and save it
+            XML2JSON()
+            # sleep for 10 minutes
+            time.sleep(10 * 60)
+    except KeyboardInterrupt as ex:
+        print("received keyboard interrupt, exit")

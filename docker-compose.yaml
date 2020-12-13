@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+
+  caddy:
+    container_name: caddy
+    image: caddy
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy/data:/data
+      - ./caddy/config:/config
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "2019:2019"
+
+  api:
+    container_name: swisshydroapi
+    build: api
+    image: swisshydroapi
+    ports:
+      - 8000:80
+    volumes:
+      - ./hydrodata:/data
+    restart: unless-stopped
+
+  bafu:
+    container_name: bafu
+    build: bafu
+    image: bafu
+    env_file:
+      - .env
+    volumes:
+      - ./hydrodata:/data
+    command: "python bafu.py"
+    restart: unless-stopped

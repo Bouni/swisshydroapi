@@ -1,8 +1,0 @@
-[Unit]
-Description=Unit to download hydroweb.xml from BAFU
-
-[Service]
-User=www-data
-Group=www-data
-Type=oneshot
-ExecStart=/srv/swisshydroapi/bafu.sh

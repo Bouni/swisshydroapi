@@ -15,29 +15,29 @@ async def root(request: Request):
     return templates.TemplateResponse("index.j2", {"request": request})
 
 
-@app.get("/stations", tags=["stations"])
+@app.get("/api/v1/stations", tags=["stations"])
 async def stations():
     """
     Get a list of all stations
     """
-    with open("station_list.json") as j:
+    with open("/data/station_list.json") as j:
         data = json.load(j)
     return data
 
 
-@app.get("/station/{id_or_name}", tags=["stations"])
+@app.get("/api/v1/station/{id_or_name}", tags=["stations"])
 async def station(id_or_name):
     """
     Get all data for a given station by its ID or name
     """
-    with open("station_data.json") as j:
+    with open("/data/station_data.json") as j:
         data = json.load(j)
+    # if id is passe
     if id_or_name in data:
         return data[id_or_name]
-    station = None
+    # if name is passed
     for _, v in data.items():
         if v["name"] == id_or_name:
-            station = v
-    if not station:
-        raise HTTPException(status_code=404, detail="Station not found")
-    return station
+            return v
+    # if no match is found
+    raise HTTPException(status_code=404, detail="Station not found")
