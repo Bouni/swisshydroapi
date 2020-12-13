@@ -19,8 +19,6 @@ services:
     container_name: swisshydroapi
     build: api
     image: swisshydroapi
-    ports:
-      - 8000:80
     volumes:
       - ./hydrodata:/data
     restart: unless-stopped
