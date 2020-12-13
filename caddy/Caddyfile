@@ -1,4 +1,4 @@
-swisshydroapi.bouni.de, devswisshydroapi.bouni.de {
+swisshydroapi.bouni.de {
     reverse_proxy api
     log
 }
