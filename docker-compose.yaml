@@ -2,26 +2,32 @@ version: '3'
 
 services:
 
-  caddy:
-    container_name: caddy
-    image: caddy
-    volumes:
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
-      - ./caddy/data:/data
-      - ./caddy/config:/config
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-      - "2019:2019"
+  #caddy:
+  #  container_name: caddy
+  #  image: caddy
+  #  volumes:
+  #    - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+  #    - ./caddy/data:/data
+  #    - ./caddy/config:/config
+  #    - /home/bouni/diedrukers/static:/diedrukers/static
+  #    - /home/bouni/diedrukers/media:/diedrukers/media
+  #  restart: unless-stopped
+  #  ports:
+  #    - "80:80"
+  #    - "443:443"
+  #    - "2019:2019"
+  #  networks:
+  #    - proxynet
 
-  api:
+  swisshydroapi:
     container_name: swisshydroapi
     build: api
     image: swisshydroapi
     volumes:
       - ./hydrodata:/data
     restart: unless-stopped
+    networks:
+      - proxynet
 
   bafu:
     container_name: bafu
@@ -33,3 +39,10 @@ services:
       - ./hydrodata:/data
     command: "python bafu.py"
     restart: unless-stopped
+    networks:
+      - proxynet
+
+networks:
+  proxynet:
+    external:
+      name: services_network

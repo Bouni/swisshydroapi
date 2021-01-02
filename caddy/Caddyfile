@@ -1,4 +1,0 @@
-swisshydroapi.bouni.de {
-    reverse_proxy api
-    log
-}
