@@ -31,9 +31,9 @@ class XML2JSON:
         signal.signal(signal.SIGTERM, self.old_sigterm)
 
     def CH1903toWGS1984(self, east, north):
-        """ 
-        function to convert SwisGrid coordinates to WSG84 aka Google Coordinates :-) 
-        http://www.giangrandi.ch/soft/swissgrid/swissgrid.shtml 
+        """
+        function to convert SwisGrid coordinates to WSG84 aka Google Coordinates :-)
+        http://www.giangrandi.ch/soft/swissgrid/swissgrid.shtml
         """
         east = self.to_float(east)
         north = self.to_float(north)
@@ -88,7 +88,7 @@ class XML2JSON:
     def parse(self):
         """Parse data for every station."""
         self.data = {}
-        xml = xmltodict.parse(self.xml)
+        xml = xmltodict.parse(self.xml, force_list=("parameter",))
         for station in xml["locations"]["station"]:
             self.data[station["@number"]] = {
                 "name": station["@name"],
@@ -99,20 +99,16 @@ class XML2JSON:
                 ),
                 "parameters": {},
             }
-            translations = {"temperatur": "temperature", "abfluss": "discharge"}
-            if isinstance(station["parameter"], list):
-                for parameter in station["parameter"]:
-                    name = translations.get(
-                        parameter["@name"].split(" ")[0].lower(), "level"
-                    )
-                    self.data[station["@number"]]["parameters"][
-                        name
-                    ] = self.parse_values(parameter)
-            else:
-                parameter = station["parameter"]
-                name = translations.get(
-                    parameter["@name"].split(" ")[0].lower(), "level"
-                )
+            translations = {"wassertemperatur": "temperature", "abfluss": "discharge", "pegel": "level"}
+            # if no parameters are available for this station continue with the next
+            if not "parameter" in station:
+                print(f"Station {station['@name']} does not provide any parameters, continue with next")
+                continue
+            for parameter in station["parameter"]:
+                name = translations.get(parameter["@name"].split(" ")[0].lower(), None)
+                if not name:
+                    print(f"Failed to get name for parameter {parameter['@name']} of station {station['@name']}")
+                    continue
                 self.data[station["@number"]]["parameters"][name] = self.parse_values(
                     parameter
                 )
@@ -140,11 +136,13 @@ class XML2JSON:
                 for k, v in self.data.items()
             ]
             json.dump(
-                stations, j,
+                stations,
+                j,
             )
         with open("/data/station_data.json", "w") as j:
             json.dump(
-                self.data, j,
+                self.data,
+                j,
             )
 
 
