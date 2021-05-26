@@ -11,8 +11,10 @@ import xmltodict
 class XML2JSON:
     def __init__(self):
         self.data = {}
-        self.fetch()
-        self.parse()
+        self.fetch("bafu_url_2")
+        self.parse(self.data)
+        self.fetch("bafu_url_6")
+        self.parse(self.data)
         self.write()
         self.killed = False
 
@@ -85,12 +87,11 @@ class XML2JSON:
                 values[p] = self.to_float(parameter[p]["#text"])
         return values
 
-    def parse(self):
+    def parse(self, target):
         """Parse data for every station."""
-        self.data = {}
         xml = xmltodict.parse(self.xml, force_list=("parameter",))
         for station in xml["locations"]["station"]:
-            self.data[station["@number"]] = {
+            target[station["@number"]] = {
                 "name": station["@name"],
                 "water-body-name": station["@water-body-name"],
                 "water-body-type": station["@water-body-type"],
@@ -109,19 +110,21 @@ class XML2JSON:
                 if not name:
                     print(f"Failed to get name for parameter {parameter['@name']} of station {station['@name']}")
                     continue
-                self.data[station["@number"]]["parameters"][name] = self.parse_values(
+                target[station["@number"]]["parameters"][name] = self.parse_values(
                     parameter
                 )
 
-    def fetch(self):
+    def fetch(self, url):
         r = requests.get(
-            os.environ.get("bafu_url", None),
+            os.environ.get(url, None),
             auth=(os.environ.get("bafu_user", None), os.environ.get("bafu_pass", None)),
         )
         if r.ok:
-            print(f"Sucessfully fetched {os.environ.get('bafu_url')}")
+            print(f"Sucessfully fetched {os.environ.get(url)}")
         else:
             print(f"Error {r.status_code}, {r.text}")
+        with open(f"/data/{url}.xml", "w") as x:
+            x.write(r.text)
         self.xml = r.content
 
     def write(self):
