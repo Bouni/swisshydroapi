@@ -3,19 +3,23 @@ import sys
 import os
 import signal
 import time
-
+import hashlib
 import requests
 import xmltodict
 
 
 class XML2JSON:
     def __init__(self):
+        self.lasthash = None
+        self.hash_changed = False
         self.data = {}
         self.fetch("bafu_url_2")
         self.parse(self.data)
         self.fetch("bafu_url_6")
         self.parse(self.data)
         self.write()
+        self.hash_data()
+        self.ping_healthcheck()
         self.killed = False
 
     def _handler(self, signum, frame):
@@ -147,6 +151,24 @@ class XML2JSON:
                 self.data,
                 j,
             )
+
+    def hash_data(self):
+        sha256_hash = hashlib.sha256()
+        with open("/data/station_data.json", "rb") as f:
+            for byte_block in iter(lambda: f.read(4096),b""):
+                sha256_hash.update(byte_block)
+        self.hash_changed = sha256_hash.hexdigest() != self.lasthash
+        print(f"Old station_data.json had a SHA256 sum of \"{self.lasthash}\"")
+        print(f"New station_data.json has a SHA256 sum of \"{sha256_hash.hexdigest()}\"")
+        lasthash = sha256_hash.hexdigest()
+
+    def ping_healthcheck(self):
+        if not self.hash_changed:
+            print(f"Send FAIL ping to healthchecks.bouni.de")
+            requests.get(f"https://healthchecks.bouni.de/ping/{os.environ.get('bafu_healthcheck', None)}/fail")
+        else:
+            print(f"Send SUCCESS ping to healthchecks.bouni.de")
+            requests.get(f"https://healthchecks.bouni.de/ping/{os.environ.get('bafu_healthcheck', None)}")
 
 
 if __name__ == "__main__":
