@@ -6,13 +6,13 @@ from fastapi.templating import Jinja2Templates
 
 app = FastAPI(title="SwissHydroAPI", version=os.environ.get("APIVERSION", "2.0"),)
 
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="app/templates")
 
 
 @app.get("/", include_in_schema=False, response_class=HTMLResponse)
 async def root(request: Request):
     """ Auto redirect to docs"""
-    return templates.TemplateResponse("index.j2", {"request": request})
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.get("/api/v1/stations", tags=["stations"])
