@@ -121,7 +121,7 @@ class XML2JSON:
     def fetch(self, url):
         r = requests.get(
             os.environ.get(url, None),
-            auth=(os.environ.get("bafu_user", None), os.environ.get("bafu_pass", None)),
+            auth=(os.environ.get("bafu_user", None), os.environ.get("bafu_pass", None))
         )
         if r.ok:
             print(f"Sucessfully fetched {os.environ.get(url)}")
