@@ -24,6 +24,14 @@ async def stations():
         data = json.load(j)
     return data
 
+@app.get("/api/v1/stations/data", tags=["stations"])
+async def stations_data():
+    """
+    Get a list of all stations with data
+    """
+    with open("/data/station_data.json") as j:
+        data = json.load(j)
+    return data
 
 @app.get("/api/v1/station/{id_or_name}", tags=["stations"])
 async def station(id_or_name):
