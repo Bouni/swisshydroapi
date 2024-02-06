@@ -1,10 +1,14 @@
 #FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9-slim
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 RUN mkdir /data
 RUN mkdir -p /app/templates
 
-RUN pip install --no-cache-dir jinja2 fastapi uvicorn gunicorn
+WORKDIR /app
+
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY templates/index.html /app/templates/
 COPY main.py /app/
