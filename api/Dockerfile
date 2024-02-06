@@ -4,11 +4,9 @@ FROM python:3.12-slim
 RUN mkdir /data
 RUN mkdir -p /app/templates
 
-WORKDIR /app
+COPY requirements.txt /app/
 
-COPY requirements.txt .
-
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY templates/index.html /app/templates/
 COPY main.py /app/
