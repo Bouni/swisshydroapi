@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<locations>
+  <station number="2009" name="Porte du Scex" water-body-name="Rhone" water-body-type="river" easting="557660" northing="133280">
+    <parameter name="Abfluss m3/s" unit="m3/s" field-name="BAFU_Abfluss_m3/s">
+      <datetime>2026-10-01T12:00:00+01:00</datetime>
+      <value>123.4</value>
+      <max-24h warn-level-class="1">140.0</max-24h>
+    </parameter>
+    <parameter name="Wassertemperatur" unit="°C" field-name="BAFU_Wassertemperatur">
+      <datetime>2026-10-01T12:00:00+01:00</datetime>
+      <value>11.2</value>
+    </parameter>
+  </station>
+  <station number="2016" name="Brugg" water-body-name="Aare" water-body-type="river" easting="657000" northing="259360"/>
+</locations>
