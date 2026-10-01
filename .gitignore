@@ -6,3 +6,9 @@ playbook.retry
 *.json
 .env
 hydrodata
+.venv
+.pytest_cache
+.ruff_cache
+.venv
+.pytest_cache
+.ruff_cache
