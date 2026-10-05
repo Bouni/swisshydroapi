@@ -1,0 +1,17 @@
+---
+services:
+
+  swisshydroapi:
+    container_name: swisshydroapi
+    build: https://github.com/Bouni/swisshydroapi.git#main
+    image: swisshydroapi
+    env_file:
+      - /opt/docker/swisshydro/bafu.env
+    volumes:
+      - /opt/docker/swisshydro/hydrodata:/data
+    restart: unless-stopped
+    networks:
+      - webserver
+    depends_on:
+      - caddy
+
