@@ -1,6 +1,6 @@
 FROM ghcr.io/astral-sh/uv:0.12 AS uv
 
-FROM python:3.14-slim-trixie AS builder
+FROM python:3.15-slim-trixie AS builder
 
 COPY --from=uv /uv /bin/uv
 
@@ -19,7 +19,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 COPY app/ /app/app/
 
 
-FROM python:3.14-slim-trixie
+FROM python:3.15-slim-trixie
 
 ENV PYTHONUNBUFFERED=1 \
     PATH="/app/.venv/bin:$PATH"
